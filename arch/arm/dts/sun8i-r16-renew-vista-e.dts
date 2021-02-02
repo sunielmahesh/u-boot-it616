@@ -29,6 +29,12 @@
 	leds {
 		compatible = "gpio-leds";
 
+		reset {
+			label = "renew-e:reset";
+			gpios = <&pio 4 11 GPIO_ACTIVE_LOW>;
+			default-state = "on";
+		};
+
 		proj-on {
 			label = "renew-e:proj-on";
 			gpios = <&pio 4 15 GPIO_ACTIVE_HIGH>; /* PROJ_ON */
