@@ -15,8 +15,10 @@
 #include <dm.h>
 #include <env.h>
 #include <hang.h>
+#include <i2c.h>
 #include <image.h>
 #include <init.h>
+#include <led.h>
 #include <log.h>
 #include <mmc.h>
 #include <axp_pmic.h>
@@ -26,6 +28,7 @@
 #include <asm/arch/cpu.h>
 #include <asm/arch/display.h>
 #include <asm/arch/dram.h>
+#include <asm/arch/gpio.h>
 #include <asm/arch/mmc.h>
 #include <asm/arch/prcm.h>
 #include <asm/arch/pmic_bus.h>
@@ -188,6 +191,52 @@ enum env_location env_get_location(enum env_operation op, int prio)
 static void mmc_pinmux_setup(int sdc);
 #endif
 
+#ifdef CONFIG_LED_GPIO
+#define DLDO1_VOLT             3300
+
+static int renew_dlpc_gpio(void)
+{
+	struct udevice *dev;
+	int ret;
+
+       ret = led_get_by_label("renew-e:proj-on", &dev);
+       if (ret) {
+               printf("failed to probe 'renew-e:proj-on' lable\n");
+               return ret;
+       }
+
+       ret = led_set_state(dev, LEDST_ON);
+       if (ret) {
+               printf("failed to set PROJ_ON GPIO\n");
+               return ret;
+       }
+
+       ret = axp_set_dldo(1, DLDO1_VOLT);
+       if (ret) {
+               printf("failed to set 3.3V to DLDO1\n");
+               return ret;
+       }
+
+       mdelay(10);
+
+       ret = led_get_by_label("renew-e:reset", &dev);
+       if (ret) {
+               printf("failed to probe 'renew-e:reset' lable\n");
+               return ret;
+       }
+
+       ret = led_set_state(dev, LEDST_ON);
+       if (ret) {
+               printf("failed to set reset GPIO\n");
+               return ret;
+       }
+
+       mdelay(500);
+
+       return 0;
+}
+#endif
+
 /* add board specific code here */
 int board_init(void)
 {
@@ -257,6 +306,10 @@ int board_init(void)
 	 * clk, reset and pinctrl drivers land.
 	 */
 	i2c_init_board();
+#endif
+
+#if CONFIG_LED_GPIO
+	renew_dlpc_gpio();
 #endif
 
 	eth_init_board();
