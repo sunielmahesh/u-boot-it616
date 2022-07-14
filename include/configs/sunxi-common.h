@@ -144,6 +144,22 @@
 #define CONFIG_SPL_PAD_TO		32768		/* decimal for 'dd' */
 #endif
 
+/* I2C */
+#if defined CONFIG_AXP152_POWER || defined CONFIG_AXP209_POWER || \
+    defined CONFIG_SY8106A_POWER
+#endif
+
+#if defined CONFIG_I2C0_ENABLE || defined CONFIG_I2C1_ENABLE || \
+    defined CONFIG_I2C2_ENABLE || defined CONFIG_I2C3_ENABLE || \
+    defined CONFIG_I2C4_ENABLE || defined CONFIG_R_I2C_ENABLE
+#define CONFIG_SYS_I2C_MVTWSI
+#ifndef CONFIG_DM_I2C
+#define CONFIG_SYS_I2C
+#define CONFIG_SYS_I2C_SPEED            100000
+#define CONFIG_SYS_I2C_SLAVE            0x7f
+#endif
+#endif
+
 /* Ethernet support */
 
 #ifdef CONFIG_USB_EHCI_HCD
