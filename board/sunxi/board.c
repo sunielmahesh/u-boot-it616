@@ -308,6 +308,9 @@ int board_init(void)
 	i2c_init_board();
 #endif
 
+/* enable DM PMIC in u-boot */
+	pmic_bus_init();
+
 #if CONFIG_LED_GPIO
 	renew_dlpc_gpio();
 #endif
