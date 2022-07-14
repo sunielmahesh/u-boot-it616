@@ -235,6 +235,33 @@ static int renew_dlpc_gpio(void)
 
        return 0;
 }
+
+static int renew_it6161_gpio(void)
+{
+       struct udevice *dev;
+        int ret;
+
+       ret = led_get_by_label("renew:it6161-rstn", &dev);
+       if (ret) {
+               printf("failed to probe 'renew:it6161-rstn' lable\n");
+               return ret;
+       }
+
+       ret = led_set_state(dev, LEDST_ON);
+        if (ret) {
+                printf("failed to set it6161 rstn GPIO\n");
+                return ret;
+        }
+
+       ret = axp_set_eldo(1, 1200);
+        if (ret) {
+                printf("failed to set 1.2V to ELDO1\n");
+                return ret;
+        }
+
+        mdelay(500);
+       return 0;
+}
 #endif
 
 /* add board specific code here */
@@ -313,6 +340,7 @@ int board_init(void)
 
 #if CONFIG_LED_GPIO
 	renew_dlpc_gpio();
+	renew_it6161_gpio();
 #endif
 
 	eth_init_board();
