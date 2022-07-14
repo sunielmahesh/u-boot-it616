@@ -58,6 +58,12 @@
 			gpios = <&pio 7 6 GPIO_ACTIVE_LOW>; /* PROJ_ON */
 			default-state = "on";
 		};
+
+		sysrstn {
+                       label = "renew:it6161-rstn";
+                       gpios = <&pio 4 9 GPIO_ACTIVE_HIGH>;
+                       default-state = "on";
+		};
 	};
 
 	reg_vcc5v0: vcc5v0 {
@@ -71,6 +77,17 @@
 		compatible = "mmc-pwrseq-simple";
 		reset-gpios = <&r_pio 0 6 GPIO_ACTIVE_LOW>; /* PL06 */
 	};
+
+	hdmi-connector {
+                compatible = "hdmi-connector";
+                type = "a";
+
+                port {
+                        hdmi_connector_in: endpoint {
+                                remote-endpoint = <&bridge_out_hdmi>;
+                        };
+                };
+        };
 };
 
 &codec {
@@ -133,6 +150,52 @@
 &i2c0 {
 	clock-frequency = <100000>; /* i2c bus frequency 100 KHz */
 	status = "disabled";
+};
+
+&i2c1 {
+        clock-frequency = <100000>;
+        status = "okay";
+
+        bridge@6c {
+                compatible = "ite,it6161";
+                reg = <0x6c>;
+                it6161-addr-hdmi-tx = <0x4C>;
+                it6161-addr-cec = <0x4E>;
+                ivdd-supply = <&reg_eldo1>; /* IVDD12: D+1V2_HDMI */
+                ovdd-supply = <&reg_dldo1>; /* OVDD33: D+3V3_MAIN */
+                ovdd18-supply = <&reg_dldo1>; /* OVDD1833: D+3V3_MAIN */
+                avcc-supply = <&reg_eldo1>; /* AVCC12: D+1V2_HDMI */
+                pvcc-supply = <&reg_eldo1>; /* PVCC12: D+1V2_HDMI */
+                pvcc33-supply = <&reg_dldo1>; /* PVCC33: D+3V3_MAIN */
+                dvdd-supply = <&reg_eldo1>; /* DVDD12: D+1V2_HDMI */
+                rdvdd-supply = <&reg_eldo1>; /* RDVDD12: D+1V2_HDMI */
+                tdvdd-supply = <&reg_eldo1>; /* TDVDD12: D+1V2_HDMI */
+                enable-gpios = <&pio 4 9 GPIO_ACTIVE_LOW>; /* SYSRSTN: PE9 */
+                interrupt-parent = <&r_pio>;
+                interrupts = <0 11 IRQ_TYPE_EDGE_FALLING>; /* INT_HDMI_OUT: PL11 */
+
+                ports {
+                        #address-cells = <1>;
+                        #size-cells = <0>;
+
+                        bridge_in: port@0 {
+                                reg = <0>;
+
+                                bridge_out_dsi: endpoint {
+                                        remote-endpoint = <&dsi_out_bridge>;
+                                        data-lanes = <1 2 3 4>;
+                                };
+                        };
+
+                        bridge_out: port@1 {
+                                reg = <1>;
+
+                                bridge_out_hdmi: endpoint {
+                                        remote-endpoint = <&hdmi_connector_in>;
+                                };
+                        };
+                };
+        };
 };
 
 &i2c2 {
